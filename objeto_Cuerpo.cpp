@@ -18,7 +18,8 @@ void Cuerpo::Init(double x0,double y0,double Vx0,double Vy0,double m0,double R0)
 }
 
 void Cuerpo::Force(){
-	Fx=0; Fy=-m*g;
+	double aux = -g*m*pow(x*x + y*y,-1.5);
+	Fx=aux*x; Fy=aux*y;
 }
 
 void Cuerpo::Move(double dt){
@@ -27,13 +28,16 @@ void Cuerpo::Move(double dt){
 }
 
 int main(){
-	Cuerpo balon;
-	double t, dt=0.1;
-	balon.Init(0,0,4,3,0.453,0.15);
-	for(t=0;t<3;t+=dt){
-		std::cout << balon.Getx() << "\t" << balon.Gety();
-		balon.Force();
-		balon.Move(dt);
+	Cuerpo planeta;
+	double m=1,r_i=10;
+	double t, dt=0.0001;
+	double w=sqrt(g*m*pow(r_i,-3)), v_i=w*r_i, T=2*M_PI/w;
+
+	planeta.Init(r_i,0,0,v_i,m,r_i);
+	for(t=0;t<1.1*T;t+=dt){
+		std::cout << planeta.Getx() << "\t" << planeta.Gety() << std::endl;
+		planeta.Force();
+		planeta.Move(dt);
 }
 
 	return 0;
