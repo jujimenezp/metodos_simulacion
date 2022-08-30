@@ -10,7 +10,7 @@ const double Lambda=-0.2123418310626054e0;
 const double Chi=-0.6626458266981849e-1;
 
 const double Coeficiente1=(1-2*Lambda)/2;
-const double Coeficiente2=1-2*(Chi+Lambda);
+const double Coeficiente2=1-2*(Chi+Zeta);
 
 class Cuerpo{
 private:
