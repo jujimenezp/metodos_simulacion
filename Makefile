@@ -1,19 +1,17 @@
 #Compiling parameters
 FLAGS = -std=c++11
+SOURCES = $(wildcard ./*.cpp)
 
+.PHONY: all $(SOURCES)
 .PRECIOUS: %.x
 
 all: euler
 
-data/%.dat: %.x
-	@echo -e 'Running $< \nData stored in $@'
-	@./$< > $@
-
 %: %.cpp
 	@echo 'Compiling $@.x'
 	@g++ $(FLAGS) $< -o $@.x
-	@echo 'Running $@.x'
-	@./$@.x
+	@echo -e 'Running $< \nData stored in $@'
+	@./$@.x > data/$@.dat
 
 %.x: %.cpp
 	@g++ $(FLAGS) $< -o $@
