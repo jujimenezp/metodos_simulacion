@@ -5,7 +5,9 @@ SOURCES = $(wildcard ./*.cpp)
 .PHONY: all $(SOURCES)
 .PRECIOUS: %.x
 
-all: euler
+all:
+	@bash -c "echo $(SOURCES) | sed 's/cpp/a/'"
+	@echo $(SOURCES)
 
 %: %.cpp
 	@echo 'Compiling $@.x'
