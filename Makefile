@@ -1,23 +1,25 @@
 #Compiling parameters
 FLAGS = -std=c++11
-SOURCES = $(wildcard ./*.cpp)
+SOURCES = $(shell find . -type f -name "*.cpp" | sed -e 's/\.cpp//g' -e 's/\.\///g')
+BCyan=\033[1;36m
+NC=\033[0m
 
-.PHONY: all $(SOURCES)
+.PHONY: graph
 .PRECIOUS: %.x
 
 all:
-	@bash -c "echo $(SOURCES) | sed 's/cpp/a/'"
-	@echo $(SOURCES)
+	@echo -e "${BCyan}PROGRAMAS:${NC}"
+	@echo $(SOURCES) | tr " " "\n"
 
 %: %.cpp
 	@echo 'Compiling $@.x'
 	@g++ $(FLAGS) $< -o $@.x
-	@echo -e 'Running $< \nData stored in $@'
+	@echo -e 'Running $< \nData stored in data/$@.dat'
 	@./$@.x > data/$@.dat
 
 %.x: %.cpp
 	@g++ $(FLAGS) $< -o $@
 
 clean:
-	@rm -rf *.x
-	@rm -rf data/*.dat
+	@find . -type f -name "*.x" -delete
+	@find . -type f -name "*.dat" -delete

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 
-const double Beta = 0.35;
+double Beta = 0.35;
 const double Gamma = 0.08;
 
 //En el modelo SIR s=x1, i=x2
@@ -24,13 +24,21 @@ void runge_kutta_step(double &t0, double dt, double &x10, double &x20){
   t0+=dt;
 }
 
-int main(){
-  double t,x1, x2, r, tf=50; double dt=0.01;
+void S_inf(double &t0, double dt, double &x10, double &x20, double tf){
+  for( ;t0<tf+dt/2; ){
+    runge_kutta_step(t0,dt,x10, x20);
+  }
+}
 
-  for(t=0, x1=0.999, x2=0.001; t<tf+dt/2; ){
-    r=1-(x1+x2);
-    std::cout << t << "\t" << x1 << "\t" << x2 << "\t" << r << std::endl;
-    runge_kutta_step(t,dt,x1, x2);
+int main(){
+  double t=0,x1=0.999, x2=0.001, tf=900; double dt=0.01;
+  double R0=Beta/Gamma;
+  std::cout << "R_0" << "\t" << "S_inf" << std::endl;
+  for(Beta=0.09; Beta<1.; Beta+=0.01){
+    t=0; x1=0.999; x2=0.001;
+    S_inf(t, dt, x1, x2, tf);
+    R0=Beta/Gamma;
+    std::cout << R0 << "\t" << x1 << std::endl;
   }
   return 0;
 }
