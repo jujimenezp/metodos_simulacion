@@ -1,5 +1,5 @@
 #Compiling parameters
-FLAGS = -std=c++11
+FLAGS = -std=c++17
 SOURCES = $(shell find . -type f -name "*.cpp" | sed -e 's/\.cpp//g' -e 's/\.\///g')
 BCyan=\033[1;36m
 NC=\033[0m

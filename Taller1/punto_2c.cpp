@@ -1,10 +1,36 @@
 #include <iostream>
 #include <cmath>
 
-const double a=1;
 double Lambda=1;
 
 //Ecuacion de Bessel con alpha=0. t=r, x1=dR/dr, x2=R(r)
+double f1(double t, double x1, double x2);
+double f2(double t, double x1, double x2);
+
+//Métod de Runge-Kutta 4to oren
+void runge_kutta_step(double &t0, double dt, double &x10, double &x20);
+
+//funcion que calcula f(lambda)=R(r=x2, lambda)
+double f(double t0, double dt, double x10, double x20, double tf);
+
+//Metodo de bisección
+double biseccion(double Lambda_a,double Lambda_b,double res,double tol,int maxiter,
+                 double t0, double dt, double x10, double x20, double tf);
+
+int main(){
+  double t=0.01,x1=0, x2=1, tf=1.; double dt=0.01;
+  double Lambda_f=biseccion(5.5,8,0.,1e-16,50,t,dt,x1,x2,tf);
+  std::clog << "Lambda: " << Lambda_f << std::endl;
+
+  Lambda=Lambda_f;
+  std::cout << "r" << "\t" << "R(r)" << std::endl;
+  for(; t<tf+dt/2; ){
+    std::cout << t << "\t" << x2 << std::endl;
+    runge_kutta_step(t,dt,x1,x2);
+  }
+  return 0;
+}
+
 double f1(double t, double x1, double x2){
   return -x1/t-Lambda*x2;
 }
@@ -32,12 +58,25 @@ double f(double t0, double dt, double x10, double x20, double tf){
   return x2;
 }
 
-int main(){
-  double t=0.01,x1=0, x2=1, tf=1., f_lambda; double dt=0.005;
-  std::cout << "Lambda" << "\t" << "f(Lambda)" << std::endl;
-  for(Lambda=0.1; Lambda<=15.; Lambda+=0.1){
-    f_lambda=f(t,dt,x1,x2,tf);
-    std::cout << Lambda << "\t" << f_lambda << std::endl;
+double biseccion(double Lambda_a,double Lambda_b,double res,double tol,int maxiter,
+                 double t0, double dt, double x10, double x20, double tf){
+  double fa, fb, fc, Lambda_c=0;
+  Lambda=Lambda_a; fa=f(t0, dt, x10, x20, tf);
+  Lambda=Lambda_b; fb=f(t0, dt, x10, x20, tf);
+  if(std::signbit(fa)!=std::signbit(fb)){
+    for(int ii=0;ii<maxiter;ii++){
+      Lambda_c=(Lambda_b+Lambda_a)/2;
+      Lambda=Lambda_c; fc=f(t0, dt, x10, x20, tf);
+      if(std::signbit(fc)==std::signbit(fa)){
+        Lambda_a=Lambda_c;
+        fa=fc;
+      }
+      else{
+        Lambda_b=Lambda_c;
+        fb=fc;
+      }
+      if(fabs(Lambda_b-Lambda_a)/2<=tol || fabs(fc)<=res) break;
+    }
   }
-  return 0;
+return Lambda_c;
 }
