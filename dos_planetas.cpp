@@ -1,18 +1,21 @@
 #include <iostream>
 #include <cmath>
-#include "vector.h"
+#include "../Vector3D/vector.h"
 
 //Constantes globales
 const int N=2;
-const double g=9.8;
+const double G=1.0;
 
 //consantes de PEFRL
 const double Zeta=0.1786178958448091e00;
 const double Lambda=-0.2123418310626054e0;
 const double Chi=-0.6626458266981849e-1;
-
 const double Coeficiente1=(1-2*Lambda)/2;
-const double Coeficiente2=1-2*(Chi+Lambda);
+const double Coeficiente2=1-2*(Chi+Zeta);
+
+//Clases
+class Cuerpo;
+class Colisionador;
 
 class Cuerpo{
 private:
@@ -54,7 +57,6 @@ void Cuerpo::Move_V(double dt, double coeff){
 
 class Colisionador{
 private:
-
 public:
 	void Force(Cuerpo *Planeta);
 	void Force_betw(Cuerpo & Planeta1, Cuerpo & Planeta2);
@@ -69,9 +71,9 @@ void Colisionador::Force(Cuerpo *Planeta){
 }
 
 void Colisionador::Force_betw(Cuerpo & Planeta1, Cuerpo & Planeta2){
-	vector3D r21,n,F1; double d,F;
-	r21=Planeta2.r-Planeta1.r; d=r21.norm(); n=r21/d;
-	F=g*Planeta1.m*Planeta2.m*pow(d, -3);
+	vector3D r21,n,F1; double d21,F;
+	r21=Planeta2.r-Planeta1.r; d21=r21.norm(); n=r21/d21;
+	F=G*Planeta1.m*Planeta2.m*pow(d21, -2.);
 	F1=F*n; Planeta1.Force_add(F1); Planeta2.Force_add(F1*(-1));
 
 
@@ -79,11 +81,13 @@ void Colisionador::Force_betw(Cuerpo & Planeta1, Cuerpo & Planeta2){
 
 int main(){
 	Cuerpo planeta[N];
-	double m=1,r_i=10;
-	double t, dt=0.01;
-	double w=sqrt(g*m*pow(r_i,-3)), v_i=w*r_i, T=2*M_PI/w;
+	double m0=10, m1=1, r=11;
+	double M=m0+m1, x0=-m1*r/M, x1=m0*r/M;
+	double w=sqrt(G*M*pow(r,-3)), T=2*M_PI/w, V0=w*x0, V1=w*x1;
+	double t,tmax=1.1T, dt=0.01;
 
-	planeta.Init(r_i,0,0,0,v_i,0,m,r_i);
+	planeta[0].Init(x0,0,0,0,0.5*V0,0,m0,1.0);
+	planeta[1].Init(x1,0,0,0,0.5*V1,0,m1,0.5);
 	planeta.Force();
 	for(t=0;t<1.1*T;t+=dt){
 		std::cout << planeta.Getx() << "\t" << planeta.Gety() << std::endl;
