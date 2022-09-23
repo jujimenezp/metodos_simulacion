@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 
-const double Lambda=5.67129;
+const double Lambda=14.7996;
 double f(double alpha, double x, double t){
   return cos(alpha*t - Lambda*x*sin(t));
 }
@@ -27,8 +27,8 @@ double Bessel(double alpha, double x){
 }
 
 int main(){
-  double alpha=0,x;
-  for(x=0;x<=1;x+=0.05){
+  double alpha=0,x,dx=0.01;
+  for(x=0;x<1+dx/2;x+=dx){
     std::cout << x << "\t" << Bessel(alpha, x) << std::endl;
   }
   return 0;

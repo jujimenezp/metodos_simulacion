@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <cmath>
 
 double Lambda=1;
@@ -18,21 +19,26 @@ double biseccion(double Lambda_a,double Lambda_b,double res,double tol,int maxit
                  double t0, double dt, double x10, double x20, double tf);
 
 int main(){
-  double t=0.01,x1=0, x2=1, tf=1.; double dt=0.01;
-  double Lambda_f=biseccion(5.5,8,0.,1e-16,50,t,dt,x1,x2,tf);
-  std::clog << "Lambda: " << Lambda_f << std::endl;
+  double t=0.01,x1=0, x2=1, tf=1.; double dt=0.01, Lambda_f=0;
+  std::vector<double> Lambdas;
+  for(double ii=0; ii<=14.5;ii+=0.5){
+    Lambda_f=biseccion(ii,ii+0.5,0.,1e-16,50,t,dt,x1,x2,tf);
+    if(Lambda_f!=0){
+      Lambdas.push_back(Lambda_f);
+      std::clog << "Lambda: " << Lambda_f << std::endl;
+    }
+  }
 
-  Lambda=Lambda_f;
-  std::cout << "r" << "\t" << "R(r)" << std::endl;
-  for(; t<tf+dt/2; ){
-    std::cout << t << "\t" << x2 << std::endl;
+  Lambda=Lambdas[4];
+  for(; t<tf+dt/2; t+=dt){
     runge_kutta_step(t,dt,x1,x2);
+    std::cout << t << "\t" << x2 << std::endl;
   }
   return 0;
 }
 
 double f1(double t, double x1, double x2){
-  return -x1/t-Lambda*x2;
+  return -x1/t-pow(Lambda,2)*x2;
 }
 
 double f2(double t, double x1, double x2){
@@ -47,12 +53,11 @@ void runge_kutta_step(double &t0, double dt, double &x10, double &x20){
   dx31 = dt*f1(t0+dt/2,x10+dx21/2, x20+dx22/2);  dx32 = dt*f2(t0+dt/2,x10+dx21/2, x20+dx22/2);
   dx41 = dt*f1(t0+dt,x10+dx31, x20+dx32);        dx42 = dt*f2(t0+dt,x10 + dx31, x20+dx32);
   x10+=(dx11 + 2*(dx21+dx31)+dx41)/6;            x20+=(dx12 + 2*(dx22+dx32)+dx42)/6;
-  t0+=dt;
 }
 
 double f(double t0, double dt, double x10, double x20, double tf){
   double t, x1, x2;
-  for(t=t0, x1=x10, x2=x20; t<tf+dt/2; ){
+  for(t=t0, x1=x10, x2=x20; t<tf+dt/2; t+=dt){
     runge_kutta_step(t,dt,x1,x2);
   }
   return x2;

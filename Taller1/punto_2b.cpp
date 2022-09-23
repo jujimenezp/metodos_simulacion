@@ -6,7 +6,7 @@ double Lambda=1;
 
 //Ecuacion de Bessel con alpha=0. t=r, x1=dR/dr, x2=R(r)
 double f1(double t, double x1, double x2){
-  return -x1/t-Lambda*x2;
+  return -x1/t-pow(Lambda,2)*x2;
 }
 
 double f2(double t, double x1, double x2){
