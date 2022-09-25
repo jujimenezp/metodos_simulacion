@@ -29,7 +29,7 @@ int main(){
     }
   }
 
-  Lambda=Lambdas[4];
+  Lambda=Lambdas[1];
   for(; t<tf+dt/2; t+=dt){
     runge_kutta_step(t,dt,x1,x2);
     std::cout << t << "\t" << x2 << std::endl;

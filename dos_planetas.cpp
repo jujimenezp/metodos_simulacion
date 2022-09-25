@@ -32,6 +32,7 @@ public:
 	double Getx(){return r.x();}
 	double Gety(){return r.y();}
 	double Getz(){return r.z();}
+	void Dibujese(void);
 	friend class Colisionador;
 };
 void Cuerpo::Init(double x0,double y0, double z0,double Vx0,double Vy0, double Vz0,double m0,double R0){
@@ -55,6 +56,10 @@ void Cuerpo::Move_V(double dt, double coeff){
 	V+=F*(dt*coeff/m);
 }
 
+void Cuerpo::Dibujese(void){
+  std::cout<<" , "<<r.x()<<"+"<<R<<"*cos(t),"<<r.y()<<"+"<<R<<"*sin(t)";
+}
+
 class Colisionador{
 private:
 public:
@@ -63,10 +68,11 @@ public:
 };
 
 void Colisionador::Force(Cuerpo *Planeta){
+	for(int i=0;i<N;i++) Planeta[i].Force_erase();
 	for(int i=0;i<N;i++){
-		Planeta[i].Force_erase();
-		for(int j=i+1;j<N;j++)
+		for(int j=i+1;j<N;j++){
 			Force_betw(Planeta[i], Planeta[j]);
+		}
 	}
 }
 
@@ -75,35 +81,70 @@ void Colisionador::Force_betw(Cuerpo & Planeta1, Cuerpo & Planeta2){
 	r21=Planeta2.r-Planeta1.r; d21=r21.norm(); n=r21/d21;
 	F=G*Planeta1.m*Planeta2.m*pow(d21, -2.);
 	F1=F*n; Planeta1.Force_add(F1); Planeta2.Force_add(F1*(-1));
+}
 
+//----------- Funciones Globales -----------
 
+void InicieAnimacion(void){
+  //  std::cout<<"set terminal gif animate"<<std::endl;
+  //  std::cout<<"set output 'DosPlanetas.gif'"<<std::endl;
+  std::cout<<"unset key"<<std::endl;
+  std::cout<<"set xrange[-100:100]"<<std::endl;
+  std::cout<<"set yrange[-100:100]"<<std::endl;
+  std::cout<<"set size ratio -1"<<std::endl;
+  std::cout<<"set parametric"<<std::endl;
+  std::cout<<"set trange [0:7]"<<std::endl;
+  std::cout<<"set isosamples 12"<<std::endl;
+}
+void InicieCuadro(void){
+    std::cout<<"plot 0,0 ";
+}
+void TermineCuadro(void){
+    std::cout<<std::endl;
 }
 
 int main(){
 	Cuerpo planeta[N];
-	double m0=10, m1=1, r=11;
+	Colisionador Newton;
+	double m0=1047, m1=1, r=1000;
 	double M=m0+m1, x0=-m1*r/M, x1=m0*r/M;
 	double w=sqrt(G*M*pow(r,-3)), T=2*M_PI/w, V0=w*x0, V1=w*x1;
-	double t,tmax=1.1T, dt=0.01;
+	double t,tmax=20*T, dt=5;
+	double tdibujo,tcuadro=T/5000;
+	int i;
 
-	planeta[0].Init(x0,0,0,0,0.5*V0,0,m0,1.0);
-	planeta[1].Init(x1,0,0,0,0.5*V1,0,m1,0.5);
-	planeta.Force();
-	for(t=0;t<1.1*T;t+=dt){
-		std::cout << planeta.Getx() << "\t" << planeta.Gety() << std::endl;
-		planeta.Move_r(dt,Zeta);
-		planeta.Force();
-		planeta.Move_V(dt,Coeficiente1);
-		planeta.Move_r(dt,Chi);
-		planeta.Force();
-		planeta.Move_V(dt,Lambda);
-		planeta.Move_r(dt,Coeficiente2);
-		planeta.Force();
-		planeta.Move_V(dt,Lambda);
-		planeta.Move_r(dt,Chi);
-		planeta.Force();
-		planeta.Move_V(dt,Coeficiente1);
-		planeta.Move_r(dt,Zeta);
+	planeta[0].Init(x0,0,0,0,V0,0,m0,10);
+	planeta[1].Init(x1,0,0,0,V1,0,m1,5);
+
+//	InicieAnimacion();
+	for(t=0,tdibujo=0; t<tmax; t+=dt,tdibujo+=dt){
+		//Dibujar animación
+		// if(tdibujo>tcuadro){
+		// 	InicieCuadro();
+		// 	for(i=0;i<N;i++) planeta[i].Dibujese();
+		// 	TermineCuadro();
+		// 	tdibujo=0;
+		// }
+
+		//Dibujar trayectoria
+		std::cout << planeta[0].Getx() <<"\t"<< planeta[0].Gety() <<"\t"
+				  << planeta[1].Getx() <<"\t"<< planeta[1].Gety()
+				  << std::endl;
+
+		//Move by PEFRL
+		for(i=0;i<N;i++) planeta[i].Move_r(dt,Zeta);
+		Newton.Force(planeta);
+		for(i=0;i<N;i++) planeta[i].Move_V(dt,Coeficiente1);
+		for(i=0;i<N;i++) planeta[i].Move_r(dt,Chi);
+		Newton.Force(planeta);
+		for(i=0;i<N;i++) planeta[i].Move_V(dt,Lambda);
+		for(i=0;i<N;i++) planeta[i].Move_r(dt,Coeficiente2);
+		Newton.Force(planeta);
+		for(i=0;i<N;i++) planeta[i].Move_V(dt,Lambda);
+		for(i=0;i<N;i++) planeta[i].Move_r(dt,Chi);
+		Newton.Force(planeta);
+		for(i=0;i<N;i++) planeta[i].Move_V(dt,Coeficiente1);
+		for(i=0;i<N;i++) planeta[i].Move_r(dt,Zeta);
 	}
 	return 0;
 }

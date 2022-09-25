@@ -1,7 +1,7 @@
 // Simular el movimiento de N moleculas en un gas 2D
 #include <iostream>
 #include <cmath>
-#include "vector.h"
+#include "../Vector3D/vector.h"
 #include "Random64.h"
 using namespace std;
 

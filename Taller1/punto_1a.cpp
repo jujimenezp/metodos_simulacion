@@ -25,7 +25,7 @@ void runge_kutta_step(double &t0, double dt, double &x10, double &x20){
 }
 
 int main(){
-  double t,x1, x2, r, tf=300; double dt=0.01;
+  double t,x1, x2, r, tf=10/Gamma; double dt=0.01;
   std::cout << "t" << "\t" << "s" << "\t" << "i" << "\t" << "r" << std::endl;
   for(t=0, x1=0.999, x2=0.001; t<tf+dt/2; ){
     r=1.-(x1+x2);

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cmath>
-#include "vector.h"
+#include "../Vector3D/vector.h"
 
 int main(int argc, char* argv[]){
   vector3D a, b, c;

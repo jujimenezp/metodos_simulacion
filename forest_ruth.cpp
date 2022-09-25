@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cmath>
-#include "vector.h"
+#include "../Vector3D/vector.h"
 
 double g=9.8;
 

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 
-const double Lambda=14.7996;
+const double Lambda=5.46773;
 double f(double alpha, double x, double t){
   return cos(alpha*t - Lambda*x*sin(t));
 }
