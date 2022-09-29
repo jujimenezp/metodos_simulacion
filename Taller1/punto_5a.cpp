@@ -91,11 +91,11 @@ void Colisionador::Force_betw(Cuerpo & Planeta1, Cuerpo & Planeta2){
 //----------- Funciones Globales -----------
 
 void InicieAnimacion(void){
-  //  std::cout<<"set terminal gif animate"<<std::endl;
-  //  std::cout<<"set output 'DosPlanetas.gif'"<<std::endl;
+  std::cout<<"set terminal gif animate"<<std::endl;
+  std::cout<<"set output 'data/Taller1/punto_5a.gif'"<<std::endl;
   std::cout<<"unset key"<<std::endl;
-  std::cout<<"set xrange[-100:100]"<<std::endl;
-  std::cout<<"set yrange[-100:100]"<<std::endl;
+  std::cout<<"set xrange[0:15]"<<std::endl;
+  std::cout<<"set yrange[-5:5]"<<std::endl;
   std::cout<<"set size ratio -1"<<std::endl;
   std::cout<<"set parametric"<<std::endl;
   std::cout<<"set trange [0:7]"<<std::endl;
@@ -125,23 +125,23 @@ int main(){
 	double x0=10;
 	double V0=sqrt(2*0.5/m);
 	double t,tmax=100, dt=0.01;
-	double tdibujo,tcuadro=tmax/10000;
+	double tdibujo,tcuadro=tmax/500;
 	int i;
 
 	planeta[0].Init(x0,0,0,V0,0,0,m,2.5);
 
-	//InicieAnimacion();
+	InicieAnimacion();
 	for(t=0,tdibujo=0; t<tmax; t+=dt,tdibujo+=dt){
 		//Dibujar animación
-		// if(tdibujo>tcuadro){
-		// 	InicieCuadro();
-		// 	for(i=0;i<N;i++) planeta[i].Dibujese();
-		// 	TermineCuadro();
-		// 	tdibujo=0;
-		// }
+		if(tdibujo>tcuadro){
+			InicieCuadro();
+			for(i=0;i<N;i++) planeta[i].Dibujese();
+			TermineCuadro();
+			tdibujo=0;
+		}
 
 		//Dibujar trayectoria
-		std::cout << t <<"\t"<< planeta[0].Getx() << std::endl;
+		//std::cout << t <<"\t"<< planeta[0].Getx() << std::endl;
 
 		//Move by PEFRL
 		for(i=0;i<N;i++) planeta[i].Move_r(dt,Zeta);

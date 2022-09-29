@@ -106,8 +106,8 @@ void Colisionador::CalculeFuerzaEntre(Cuerpo & Molecula1, Cuerpo & Molecula2){
 
 //----------------- Funciones de Animacion ----------
 void InicieAnimacion(void){
-  //cout<<"set terminal gif animate"<<endl;
-  //cout<<"set output 'data/Taller1/punto_5b.gif'"<<endl;
+  cout<<"set terminal gif animate"<<endl;
+  cout<<"set output 'data/Taller1/punto_5b.gif'"<<endl;
   cout<<"unset key"<<endl;
   cout<<"set xrange[-10:"<<Lx+10<<"]"<<endl;
   cout<<"set yrange[-10:"<<Ly+10<<"]"<<endl;
@@ -143,7 +143,7 @@ int main(void){
   Crandom ran64(1);
   double m=1, R0=2.5, kT=10, V0=sqrt(2*kT/m);
   int i;
-  double t,tdibujo,tf=200,tcuadro=tf/2000,dt=1e-3;
+  double t,tdibujo,tf=200,tcuadro=tf/700,dt=1e-3;
   double dx=10, dy=10;
   double Theta, OmegaMax=1.0;
 
@@ -158,14 +158,12 @@ int main(void){
   //InicieAnimacion(); //Dibujar
   for(t=0,tdibujo=0  ; t<tf ; t+=dt,tdibujo+=dt){
     //Dibujar
-    // if(tdibujo>tcuadro){
-
-    //   InicieCuadro();
-    //   for(i=0;i<N;i++) Molecula[i].Dibujese();
-    //   TermineCuadro();
-
-    //   tdibujo=0;
-    // }
+     // if(tdibujo>tcuadro){
+     //   InicieCuadro();
+     //   for(i=0;i<N;i++) Molecula[i].Dibujese();
+     //   TermineCuadro();
+     //   tdibujo=0;
+     // }
 
     Graficar_yprom(t,Molecula);
 

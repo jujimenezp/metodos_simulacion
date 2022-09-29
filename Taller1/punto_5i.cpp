@@ -4,6 +4,7 @@
 #include "../../Vector3D/vector.h"
 #include "../Random64.h"
 #include <vector>
+#include <fstream>
 #include <gsl/gsl_statistics_double.h>
 #include <gsl/gsl_histogram.h>
 using namespace std;
@@ -203,62 +204,70 @@ int main(void){
   double Intensidad=0;
   double v_old[N][2]={0};
 
-  //Inicializar las moléculas
-  for(int ix=0;ix<Nx;ix++)
-    for(int iy=0;iy<Ny;iy++){
-      Theta=2*M_PI*ran64.r();
-      //-----------------------(   x0,   y0,      Vx0, Vy0, m0,R0, theta0,omega0)
-      Molecula[Nx*iy+ix].Inicie((ix+1)*dx,(iy+1)*dy, V0*cos(Theta),V0*sin(Theta), m,R0,   0, OmegaMax);//OJO
-    }
+  double ks[]={2, 3, 4, 5 ,6 ,7 ,8, 10,15,20};
 
   //InicieAnimacion(); //Dibujar
-  for(t=0,tdibujo=0  ; t<tf ; t+=dt,tdibujo+=dt){
-    //Dibujar
-    // if(tdibujo>tcuadro){
+  std::ofstream file("data/Taller1/punto_5i_presion.dat");
+  for (auto &k: ks){
+    kT=k; V0=sqrt(2*kT/m);
+     //Inicializar las moléculas
+    for(int ix=0;ix<Nx;ix++)
+      for(int iy=0;iy<Ny;iy++){
+        Theta=2*M_PI*ran64.r();
+        //-----------------------(   x0,   y0,      Vx0, Vy0, m0,R0, theta0,omega0)
+        Molecula[Nx*iy+ix].Inicie((ix+1)*dx,(iy+1)*dy, V0*cos(Theta),V0*sin(Theta), m,R0,   0, OmegaMax);//OJO
+      }
+    for(t=0,tdibujo=0  ; t<tf ; t+=dt,tdibujo+=dt){
+      //Dibujar
+      // if(tdibujo>tcuadro){
 
-    //   InicieCuadro();
-    //   for(i=0;i<N;i++) Molecula[i].Dibujese();
-    //   TermineCuadro();
+      //   InicieCuadro();
+      //   for(i=0;i<N;i++) Molecula[i].Dibujese();
+      //   TermineCuadro();
 
-    //   tdibujo=0;
-    // }
+      //   tdibujo=0;
+      // }
 
-    //Graficar_yprom(t,Molecula);
+      //Graficar_yprom(t,Molecula);
 
-    if(t>60){
-      Graficar_Vx(t,Molecula);
-      if(histo==true) Save_Vx(Vx, Molecula);
-      //Calculo de la intensidad
-      Lennard_Jones.Calculo_Intensidad(Molecula, Intensidad, v_old);
+      if(t>60){
+        Graficar_Vx(t,Molecula);
+        if(histo==true) Save_Vx(Vx, Molecula);
+        //Calculo de la intensidad
+        Lennard_Jones.Calculo_Intensidad(Molecula, Intensidad, v_old);
+      }
+
+
+      //--- Muevase por PEFRL ---
+      for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,epsilon);
+      Lennard_Jones.CalculeFuerzas(Molecula);
+      for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,lambda2);
+      for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,chi);
+      Lennard_Jones.CalculeFuerzas(Molecula);
+      for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,lambda);
+      for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,chiepsilon);
+      Lennard_Jones.CalculeFuerzas(Molecula);
+      for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,lambda);
+      for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,chi);
+      Lennard_Jones.CalculeFuerzas(Molecula);
+      for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,lambda2);
+      for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,epsilon);
     }
 
-
-    //--- Muevase por PEFRL ---
-    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,epsilon);
-    Lennard_Jones.CalculeFuerzas(Molecula);
-    for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,lambda2);
-    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,chi);
-    Lennard_Jones.CalculeFuerzas(Molecula);
-    for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,lambda);
-    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,chiepsilon);
-    Lennard_Jones.CalculeFuerzas(Molecula);
-    for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,lambda);
-    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,chi);
-    Lennard_Jones.CalculeFuerzas(Molecula);
-    for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,lambda2);
-    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,epsilon);
+    if(histo==true){
+      double Vx_dev = gsl_stats_sd(&Vx[0],1,Vx.size());
+      double Vx_mean = gsl_stats_mean(&Vx[0],1,Vx.size());
+      double Temperatura = m*pow(Vx_dev,2);
+      std::clog << "Promedio Vx : " << Vx_mean << std::endl
+                << "Desviacion Vx : " << Vx_dev << std::endl
+                << "Temperatura: " << Temperatura << std::endl;
+      file << Temperatura << "\t";
+    }
+    double Presion = Intensidad/(tf*Lx);
+    std::clog << "Presion: " << Presion << std::endl;
+    file << Presion << std::endl;
   }
-
-  if(histo==true){
-    double Vx_dev = gsl_stats_sd(&Vx[0],1,Vx.size());
-    double Vx_mean = gsl_stats_mean(&Vx[0],1,Vx.size());
-    double Temperatura = m*pow(Vx_dev,2);
-    std::clog << "Promedio Vx : " << Vx_mean << std::endl
-              << "Desviacion Vx : " << Vx_dev << std::endl
-              << "Temperatura: " << Temperatura << std::endl;
-  }
-  double Presion = Intensidad/(tf*Lx);
-  std::clog << "Presion: " << Presion << std::endl;
+  file.close();
   return 0;
 }
 

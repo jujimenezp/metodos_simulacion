@@ -161,10 +161,10 @@ int main(void){
   Crandom ran64(1);
   double m=1, R0=2.5, kT=10, V0=sqrt(2*kT/m);
   int i;
-  double t,tdibujo,tf=300,tcuadro=tf/1000,dt=1e-3;
+  double t,tdibujo,tf=200,tcuadro=tf/1000,dt=1e-3;
   double dx=10, dy=10;
   double Theta, OmegaMax=1.0;
-  bool histo=false;
+  bool histo=true;
   std::vector<double> Vx;
 
 
@@ -176,24 +176,24 @@ int main(void){
       Molecula[Nx*iy+ix].Inicie((ix+1)*dx,(iy+1)*dy, V0*cos(Theta),V0*sin(Theta), m,R0,   0, OmegaMax);//OJO
     }
 
-  InicieAnimacion(); //Dibujar
+  //InicieAnimacion(); //Dibujar
   for(t=0,tdibujo=0  ; t<tf ; t+=dt,tdibujo+=dt){
-    //Dibujar
-    if(tdibujo>tcuadro){
+    // //Dibujar
+    // if(tdibujo>tcuadro){
 
-      InicieCuadro();
-      for(i=0;i<N;i++) Molecula[i].Dibujese();
-      TermineCuadro();
+    //   InicieCuadro();
+    //   for(i=0;i<N;i++) Molecula[i].Dibujese();
+    //   TermineCuadro();
 
-      tdibujo=0;
-    }
+    //   tdibujo=0;
+    // }
 
     //Graficar_yprom(t,Molecula);
 
-    // if(t>60){
-    //   Graficar_Vx(t,Molecula);
-    //   if(histo==true) Save_Vx(Vx, Molecula);
-    // }
+    if(t>60){
+      Graficar_Vx(t,Molecula);
+      if(histo==true) Save_Vx(Vx, Molecula);
+    }
 
 
     //--- Muevase por PEFRL ---

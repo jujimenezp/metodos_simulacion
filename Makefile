@@ -1,6 +1,6 @@
 #Compiling parameters
 PDF_VIEWER=okular
-FLAGS = -std=c++17
+FLAGS = -std=c++17 -lgsl -lgslcblas -lm
 SOURCES = $(shell find . -type f -name "*.cpp" | sed -e 's/\.cpp//g' -e 's/\.\///g')
 BCyan=\033[1;36m
 NC=\033[0m
