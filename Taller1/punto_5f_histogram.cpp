@@ -3,6 +3,9 @@
 #include <cmath>
 #include "../../Vector3D/vector.h"
 #include "../Random64.h"
+#include <vector>
+#include <gsl/gsl_statistics_double.h>
+#include <gsl/gsl_histogram.h>
 using namespace std;
 
 //---- declarar constantes ---
@@ -35,6 +38,7 @@ public:
   void Dibujese(void);
   double Getx(void){return r.x();}; //inline
   double Gety(void){return r.y();}; //inline
+  double GetVx(void){return V.x();};
   friend class Colisionador;
 };
 void Cuerpo::Inicie(double x0,double y0,double Vx0,double Vy0,double m0,double R0, double theta0, double omega0){
@@ -136,6 +140,21 @@ void Graficar_yprom(double t, Cuerpo *Molecula){
   std::cout << t <<"\t"<< S <<std::endl;
 }
 
+void Graficar_Vx(double t, Cuerpo *molecula){
+  std::cout <<t <<"\t";
+  for(int ii=0; ii<N; ii++){
+    std::cout << molecula[ii].GetVx() << "\t";
+  }
+  std::cout << std::endl;
+}
+
+void Save_Vx(std::vector<double> &vec, Cuerpo *Molecula, gsl_histogram * h){
+  for(int ii=0; ii<N; ii++){
+    vec.push_back(Molecula[ii].GetVx());
+    gsl_histogram_increment(h,Molecula[ii].GetVx());
+  }
+}
+
 //-----------  Programa Principal --------------  
 int main(void){
   Cuerpo Molecula[N];
@@ -146,6 +165,11 @@ int main(void){
   double t,tdibujo,tf=200,tcuadro=tf/2000,dt=1e-3;
   double dx=10, dy=10;
   double Theta, OmegaMax=1.0;
+  std::vector<double> Vx;
+  int bins=200;
+  double h_a=-10,h_b=10;
+  gsl_histogram * h =gsl_histogram_alloc(bins);
+  gsl_histogram_set_ranges_uniform(h,h_a,h_b);
 
   //Inicializar las moléculas
   for(int ix=0;ix<Nx;ix++)
@@ -167,7 +191,13 @@ int main(void){
     //   tdibujo=0;
     // }
 
-    Graficar_yprom(t,Molecula);
+    //Graficar_yprom(t,Molecula);
+
+    if(t>60){
+      //Graficar_Vx(t,Molecula);
+      Save_Vx(Vx, Molecula,h);
+    }
+
 
     //--- Muevase por PEFRL ---
     for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,epsilon);
@@ -182,10 +212,16 @@ int main(void){
     for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,chi);
     Lennard_Jones.CalculeFuerzas(Molecula);
     for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,lambda2);
-    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,epsilon);  
-
+    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,epsilon);
   }   
 
+  gsl_histogram_fprintf(stdout,h,"%g","%g");
+  gsl_histogram_free(h);
+
+  double Vx_dev = gsl_stats_sd(&Vx[0],1,Vx.size());
+  double Vx_std = gsl_stats_mean(&Vx[0],1,Vx.size());
+  std::clog << "Promedio: " << Vx_std << std::endl
+            << "Desviacion: " << Vx_dev << std::endl;
   
   return 0;
 }

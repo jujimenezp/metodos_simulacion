@@ -3,11 +3,14 @@
 #include <cmath>
 #include "../../Vector3D/vector.h"
 #include "../Random64.h"
+#include <vector>
+#include <gsl/gsl_statistics_double.h>
+#include <gsl/gsl_histogram.h>
 using namespace std;
 
 //---- declarar constantes ---
 const double K=1.0e4;
-const double Lx=60, Ly=120;
+const double Lx=60, Ly=60;
 const int Nx=5, Ny=5, N=Nx*Ny;
 
 const double epsilon=0.1786178958448091e00;
@@ -25,6 +28,7 @@ class Colisionador;
 class Cuerpo{
 private:
   vector3D r,V,F; double m,R; double theta,omega,tau,I;
+  bool touch;
 public:
   void Inicie(double x0,double y0,double Vx0,double Vy0,double m0,double R0,
               double theta0, double omega0);
@@ -35,10 +39,13 @@ public:
   void Dibujese(void);
   double Getx(void){return r.x();}; //inline
   double Gety(void){return r.y();}; //inline
+  double GetVx(void){return V.x();};
+  double GetVy(void){return V.y();};
   friend class Colisionador;
 };
 void Cuerpo::Inicie(double x0,double y0,double Vx0,double Vy0,double m0,double R0, double theta0, double omega0){
   r.load(x0,y0,0); V.load(Vx0,Vy0,0);  m=m0;  R=R0, theta=theta0; omega=omega0; I=2.0/5*m*R*R;
+  touch=false;
 } 
 void Cuerpo::Mueva_r(double dt, double Coeficiente){
   r+=V*(Coeficiente*dt); theta+=omega*(Coeficiente*dt);
@@ -57,6 +64,7 @@ private:
 public:
   void CalculeFuerzas(Cuerpo * Molecula);
   void CalculeFuerzaEntre(Cuerpo & Molecula1, Cuerpo & Molecula2);
+  void Calculo_Intensidad(Cuerpo *Molecula, double &Intensidad, double v_old[][2]);
 };
 
 void Colisionador::CalculeFuerzas(Cuerpo * Molecula){
@@ -104,10 +112,39 @@ void Colisionador::CalculeFuerzaEntre(Cuerpo & Molecula1, Cuerpo & Molecula2){
 
 }
 
+//Calculo de la intensidad
+void Colisionador::Calculo_Intensidad(Cuerpo *Molecula, double &Intensidad, double v_old[][2]){
+  for(int ii=0;ii<N;ii++){
+    double s_Lx = Molecula[ii].Getx()+Molecula[ii].R -Lx;
+    double s_x0= Molecula[ii].R-Molecula[ii].Getx();
+    double s_Ly = Molecula[ii].Gety()+Molecula[ii].R -Ly;
+    double s_y0= Molecula[ii].R-Molecula[ii].Gety();
+    if(Molecula[ii].touch==false){
+      if(s_Lx>0 || s_x0>0){
+        Molecula[ii].touch=true;
+        v_old[ii][0]=Molecula[ii].GetVx();
+      }
+      if(s_Ly>0 || s_y0>=0){
+        Molecula[ii].touch=true;
+        v_old[ii][1]=Molecula[ii].GetVy();
+      }
+    }
+    else if(s_Lx<=0 && s_x0<=0 && Molecula[ii].touch==true){
+      Molecula[ii].touch=false;
+      Intensidad+=Molecula[ii].m*fabs(Molecula[ii].GetVx()-v_old[ii][0]);
+      v_old[ii][0]=Molecula[ii].GetVx();
+    }
+    else if(s_Ly<=0 && s_y0<=0 && Molecula[ii].touch==true){
+      Molecula[ii].touch=false;
+      Intensidad+=Molecula[ii].m*fabs(Molecula[ii].GetVy()-v_old[ii][1]);
+      v_old[ii][1]=Molecula[ii].GetVy();
+    }
+  }
+}
 //----------------- Funciones de Animacion ----------
 void InicieAnimacion(void){
-  //cout<<"set terminal gif animate"<<endl;
-  //cout<<"set output 'data/Taller1/punto_5b.gif'"<<endl;
+  cout<<"set terminal gif animate"<<endl;
+  cout<<"set output 'data/Taller1/punto_5f_K10.gif'"<<endl;
   cout<<"unset key"<<endl;
   cout<<"set xrange[-10:"<<Lx+10<<"]"<<endl;
   cout<<"set yrange[-10:"<<Ly+10<<"]"<<endl;
@@ -136,6 +173,20 @@ void Graficar_yprom(double t, Cuerpo *Molecula){
   std::cout << t <<"\t"<< S <<std::endl;
 }
 
+void Graficar_Vx(double t, Cuerpo *molecula){
+  std::cout <<t <<"\t";
+  for(int ii=0; ii<N; ii++){
+    std::cout << molecula[ii].GetVx() << "\t";
+  }
+  std::cout << std::endl;
+}
+
+void Save_Vx(std::vector<double> &vec, Cuerpo *Molecula){
+  for(int ii=0; ii<N; ii++){
+    vec.push_back(Molecula[ii].GetVx());
+  }
+}
+
 //-----------  Programa Principal --------------  
 int main(void){
   Cuerpo Molecula[N];
@@ -143,9 +194,14 @@ int main(void){
   Crandom ran64(1);
   double m=1, R0=2.5, kT=10, V0=sqrt(2*kT/m);
   int i;
-  double t,tdibujo,tf=200,tcuadro=tf/2000,dt=1e-3;
+  double t,tdibujo,tf=200,tcuadro=tf/1000,dt=5e-4;
   double dx=10, dy=10;
   double Theta, OmegaMax=1.0;
+  bool histo=true;
+  std::vector<double> Vx;
+  //Calculo de la intensidad
+  double Intensidad=0;
+  double v_old[N][2]={0};
 
   //Inicializar las moléculas
   for(int ix=0;ix<Nx;ix++)
@@ -167,7 +223,15 @@ int main(void){
     //   tdibujo=0;
     // }
 
-    Graficar_yprom(t,Molecula);
+    //Graficar_yprom(t,Molecula);
+
+    if(t>60){
+      Graficar_Vx(t,Molecula);
+      if(histo==true) Save_Vx(Vx, Molecula);
+      //Calculo de la intensidad
+      Lennard_Jones.Calculo_Intensidad(Molecula, Intensidad, v_old);
+    }
+
 
     //--- Muevase por PEFRL ---
     for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,epsilon);
@@ -182,11 +246,19 @@ int main(void){
     for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,chi);
     Lennard_Jones.CalculeFuerzas(Molecula);
     for(i=0;i<N;i++)Molecula[i].Mueva_V(dt,lambda2);
-    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,epsilon);  
+    for(i=0;i<N;i++)Molecula[i].Mueva_r(dt,epsilon);
+  }
 
-  }   
-
-  
+  if(histo==true){
+    double Vx_dev = gsl_stats_sd(&Vx[0],1,Vx.size());
+    double Vx_mean = gsl_stats_mean(&Vx[0],1,Vx.size());
+    double Temperatura = m*pow(Vx_dev,2);
+    std::clog << "Promedio Vx : " << Vx_mean << std::endl
+              << "Desviacion Vx : " << Vx_dev << std::endl
+              << "Temperatura: " << Temperatura << std::endl;
+  }
+  double Presion = Intensidad/(tf*Lx);
+  std::clog << "Presion: " << Presion << std::endl;
   return 0;
 }
 
