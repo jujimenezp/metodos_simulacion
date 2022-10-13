@@ -1,6 +1,6 @@
 #Compiling parameters
 PDF_VIEWER=okular
-FLAGS = -std=c++17 -lgsl -lgslcblas -lm
+FLAGS = -Wall -fsanitize=address -fsanitize=leak -std=c++17 -lgsl -lgslcblas -lm
 SOURCES = $(shell find . -type f -name "*.cpp" | sed -e 's/\.cpp//g' -e 's/\.\///g')
 BCyan=\033[1;36m
 NC=\033[0m
@@ -17,10 +17,11 @@ all:
 	@echo "make clean borra los .x y .dat en todas las subcarpetas"
 
 %: %.cpp
-	@echo 'Compiling $@.x'
+	@echo 'Compiling $@.cpp'
 	@g++ $(FLAGS) $< -o $@.x
-	@echo -e 'Running $< \nData stored in data/$@.dat'
+	@echo -e 'Running $@.x'
 	@./$@.x > data/$@.dat
+	@echo 'Data stored in data/$@.dat'
 
 %.x: %.cpp
 	@g++ $(FLAGS) $< -o $@
