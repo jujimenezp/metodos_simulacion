@@ -141,7 +141,7 @@ int main(void){
   Cuerpo Molecula[N];
   Colisionador Lennard_Jones;
   Crandom ran64(1);
-  double m=1, R0=2.5, kT=10, V0=sqrt(2*kT/m);
+  double m=1, R0=2.5, kT=0.05, V0=sqrt(2*kT/m);
   int i;
   double t,tdibujo,tf=200,tcuadro=tf/700,dt=1e-3;
   double dx=10, dy=10;
