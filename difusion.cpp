@@ -9,7 +9,7 @@ const int Q=2;
 //Clase LatticeGas
 class LatticeGas{
 private:
-  int V[Q]; //V[i] i=0 derecha, Q=1 izquierda
+  int V[Q]; //V[i] i=0 derecha, i=1 izquierda
   int n[Lx][Q], nnew[Lx][Q]; //n[ix][i]
 public:
   LatticeGas(void);
