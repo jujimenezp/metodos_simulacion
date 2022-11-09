@@ -16,6 +16,7 @@ public:
   void Borrar();
   void Inicie(int N,double mu,double sigma,Crandom & ran64);
   void Show();
+  void GrafiqueRho();
   void Colisione(Crandom & ran64);
   void Adveccione();
   double rho(int ix){return n[ix][0]+n[ix][1];}
@@ -72,7 +73,7 @@ void LatticeGas::Colisione(Crandom & ran64){
 void LatticeGas::Adveccione(){
   for(int ix=0; ix <Lx;ix++){
     for(int i=0;i <Q;i++){
-      n[ix+V[i]][i]=nnew[ix][i];
+      n[(ix+V[i]+Lx)%Lx][i]=nnew[ix][i];
     }
   }
 }
@@ -89,10 +90,15 @@ double LatticeGas::Varianza(){
   return Sigma2;
 }
 
+void LatticeGas::GrafiqueRho(){
+  for(int ix=0;ix <Lx;ix++)
+    std::cout <<ix <<"\t" <<std::endl;
+}
+
 int main(){
   LatticeGas Difusion;
   Crandom ran64(1);
-  int N=50; double mu=Lx/2, sigma=Lx/8;
+  int N=400; double mu=Lx/2, sigma=Lx/8;
   int t, tmax=400;
 
   Difusion.Borrar();
