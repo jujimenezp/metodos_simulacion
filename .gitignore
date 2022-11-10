@@ -3,3 +3,5 @@ data
 *.o
 *.pdf
 *.out
+*.log
+*.txt

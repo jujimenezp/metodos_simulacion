@@ -104,10 +104,11 @@ int main(){
   Difusion.Borrar();
   Difusion.Inicie(N, mu, sigma, ran64);
   for(t=0;t <tmax;t++){
+    std::cout << t <<"\t" << Difusion.Varianza() << std::endl;
     Difusion.Colisione(ran64);
     Difusion.Adveccione();
   }
-  Difusion.Show();
+  //Difusion.Show();
 
   return 0;
 }
