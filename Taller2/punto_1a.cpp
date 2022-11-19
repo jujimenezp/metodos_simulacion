@@ -69,9 +69,10 @@ void LatticeGas::Show(){
 }
 
 void LatticeGas::Colisione(Crandom & ran64){
-  double ran=ran64.r();
+  double ran;
   for(int ir=0;ir<L;ir++){
     //No rotar
+    ran=ran64.r();
     if(ran < p0){
       nnew[ir][0]=n[ir][0]; nnew[ir][1]=n[ir][1];
       nnew[ir][2]=n[ir][2]; nnew[ir][3]=n[ir][3];

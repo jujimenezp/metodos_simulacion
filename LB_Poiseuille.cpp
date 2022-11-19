@@ -102,7 +102,7 @@ void LatticeBoltzmann::Start(double rho0,double Ux0,double Uy0){
 }
 
 void LatticeBoltzmann::Collision(double gx, double gy){
-  int ix,iy,i,n0; double rho0,Ux0,Uy0; double Fx,Fy;;
+  int ix,iy,i,n0; double rho0,Ux0,Uy0; double Fx,Fy;
   for(ix=0;ix<Lx;ix++){
     for(iy=0;iy<Ly;iy++){
       //compute the macroscopic fields on the cell

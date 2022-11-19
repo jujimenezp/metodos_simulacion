@@ -1,3 +1,4 @@
+//Lattice-Boltzmann para ondas
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -39,7 +40,7 @@ public:
 };
 
 LatticeBoltzmann::LatticeBoltzmann(){
-  //Set the wights
+  //Set the weights
   w[0]=W0;w[1]=w[2]=w[3]=w[4]=(1.0-W0)/4;
   //set the velocity vectors
   Vx[0]=0; Vx[1]=1; Vx[2]=0; Vx[3]=-1; Vx[4]=0;
@@ -161,7 +162,7 @@ void LatticeBoltzmann::Print(const char * NameFile){
 
 int main(){
   LatticeBoltzmann Ondas;
-  int t,tmax=4000;
+  int t,tmax=100;
   double rho0=0,Jx0=0,Jy0=0;
 
   Ondas.Start(rho0,Jx0,Jy0);
