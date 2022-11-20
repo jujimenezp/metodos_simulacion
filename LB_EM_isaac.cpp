@@ -1,6 +1,7 @@
 //Skin Effect in 1D
-#include<iostream>
-#include<cmath>
+#include <iostream>
+#include <cmath>
+#include <fstream>
 #include "vector.h"
 using namespace std;
 
@@ -67,7 +68,7 @@ class LatticeBoltzmann{
     void Collision(void);
     void ImposeFields(int t);
     void Advection(void);
-    void Print(void);
+    void Print(std::string filename);
 };
 
 LatticeBoltzmann::LatticeBoltzmann(){
@@ -301,9 +302,10 @@ void LatticeBoltzmann::Advection(void){
               }
       }
 }
-void LatticeBoltzmann::Print(void){
+void LatticeBoltzmann::Print(string filename){
   int ix=0,iy=0,iz,r,p,i,j; double sigma0,mur0,epsilonr0,prefactor0;
   double rhoc0; vector3D D0,B0,E0,H0,Jprima0,Eprima0; double E2,B2;
+  std::ofstream file(filename);
   for(iz=0;iz<Lz/2;iz++){
     //Compute the electromagnetic constants
     sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
@@ -313,25 +315,26 @@ void LatticeBoltzmann::Print(void){
     E0=E(D0,epsilonr0); H0=H(B0,mur0);
     Jprima0=Jprima(E0,prefactor0); Eprima0=Eprima(E0,Jprima0,epsilonr0); 
     //Print
-    cout<<iz<<"\t"<<E0.x()/E00<<"\t"<<E0.y()/E00<<"\t"<<E0.z()/E00<<endl;
+    file<<iz<<"\t"<<E0.x()/E00<<"\t"<<E0.y()/E00<<"\t"<<E0.z()/E00<<endl;
   }
 }
 
 
 int main(){
-  LatticeBoltzmann OndaSkin;
+  LatticeBoltzmann Conductor;
   int t, tmax=700;
   
-  OndaSkin.Start();
-  OndaSkin.ImposeFields(0);
+  Conductor.Start();
+  Conductor.ImposeFields(0);
   
   for(t=0;t<tmax;t++){
-    OndaSkin.Collision();
-    OndaSkin.ImposeFields(t);
-    OndaSkin.Advection();
+    Conductor.Collision();
+    Conductor.ImposeFields(t);
+    Conductor.Advection();
+    if(t%100==0) Conductor.Print("data/skin_"+std::to_string(t)+".dat");
   }
   
-  OndaSkin.Print();
+  Conductor.Print("data/skin_final.dat");
   
   return 0;
 }
