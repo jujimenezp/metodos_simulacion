@@ -1,4 +1,4 @@
-//Skin Effect in 1D
+//Conductores en 3D
 #include <iostream>
 #include <cmath>
 #include <fstream>
@@ -6,9 +6,9 @@
 using namespace std;
 
 //------------------------CONSTANTS-------------------------------
-const int Lx = 1;   //
-const int Ly = 1;   //
-const int Lz = 1000; //
+const int Lx = 100;   //
+const int Ly = 100;   //
+const int Lz = 100; //
 const int Qr = 2, Qp = 3, Qi = 4, Qj = 2;
 //-------------------
 const double Tau = 0.5;
