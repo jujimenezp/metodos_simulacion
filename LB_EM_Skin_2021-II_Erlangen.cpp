@@ -1,7 +1,7 @@
 //Skin Effect in 1D
 #include<iostream>
 #include<cmath>
-#include "Vector.h"
+#include "vector.h"
 using namespace std;
 
 //------------------------CONSTANTS-------------------------------
