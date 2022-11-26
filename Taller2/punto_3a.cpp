@@ -34,7 +34,7 @@ public:
   void Collision();
   void ImposeFields(double Ufan, int ixc, int iyc, int R);
   void Advection();
-  void Print(const char * NameFile, double Ufan);
+  void Print(std::string NameFile, double Ufan);
   double sigmaxx(int ix, int iy);
   double sigmayy(int ix, int iy);
   double sigmaxy(int ix, int iy);
@@ -156,12 +156,13 @@ void LatticeBoltzmann::Advection(){
   }
 }
 
-void LatticeBoltzmann::Print(const char * NameFile,double Ufan){
+void LatticeBoltzmann::Print(std::string NameFile,double Ufan){
   std::ofstream MyFile(NameFile); double rho0,Ux0,Uy0; int ix,iy;
+  MyFile <<"x,"<<"y,"<<"Vx,"<<"Vy"<<std::endl;
   for(ix=0;ix<Lx;ix+=4){
     for(iy=0;iy<Ly;iy+=4){
       rho0=rho(ix,iy,true); Ux0=Jx(ix,iy,true)/rho0; Uy0=Jy(ix,iy,true)/rho0;
-      MyFile<<ix<< "\t"<< iy<< "\t"<< Ux0/Ufan*4<<"\t"<< Uy0/Ufan*4<<std::endl;
+      MyFile<<ix<< ","<< iy<< ","<< Ux0/Ufan*4<<","<< Uy0/Ufan*4<<std::endl;
     }
     MyFile<<std::endl;
   }
@@ -236,7 +237,7 @@ std::vector<double> LatticeBoltzmann::Fcilindro(int N, int  ixc, int  iyc, int R
 
 int main(){
   LatticeBoltzmann Aire;
-  int t,tmax=10000;
+  int t,tmax=5000;
   double rho0=1., Ufan=0.1;
   int ixc=128, iyc=32, R=8;
   int Ncilindro=25;
@@ -247,11 +248,10 @@ int main(){
     Aire.Collision();
     Aire.ImposeFields(Ufan,ixc,iyc,R);
     Aire.Advection();
-    if(t==1) Aire.Print("data/Taller2/punto_3a_distribución0.dat",Ufan);
+    if(t%500==0) Aire.Print("data/Taller2/punto_3a_dist"+std::to_string(t)+".csv",Ufan);
     F=Aire.Fcilindro(Ncilindro,ixc,iyc,R);
     std::cout << t << "\t" << F[0] << "\t" <<F[1] << std::endl;
   }
-  Aire.Print("data/Taller2/punto_3a_distribución.dat",Ufan);
 
   return 0;
 }

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <fstream>
-#include "vector.h"
+#include "../vector.h"
 using namespace std;
 
 //------------------------CONSTANTS-------------------------------
@@ -16,7 +16,7 @@ const double UTau = 1/Tau;
 const double UmUTau=1-1/Tau;
 //-------------------
 const double Epsilon0=1, Mu0=2;
-const double Sigma0=0.0125;
+const double Sigma0=0;
 const double C=1.0/sqrt(2.0);
 
 const double E00=0.001,B00=E00/C;
@@ -29,7 +29,7 @@ double epsilonr(int ix,int iy,int iz){
   return 1.0;
 }
 double sigma(int ix,int iy,int iz){
-  return 0;
+  return 0.;
 }
 
 //--------------------- class LatticeBoltzmann ------------
@@ -65,7 +65,7 @@ class LatticeBoltzmann{
     double feq0(double rhoc0);
     //Simulation Functions
     void Start(void);
-    void Collision(void);
+    void Collision(double t);
     void ImposeFields(int t);
     void Advection(void);
     void Print(std::string filename);
@@ -227,20 +227,25 @@ void LatticeBoltzmann::Start(void){
       }
 }
 
-void LatticeBoltzmann::Collision(void){
-  int ix,iy,iz,r,p,i,j; double sigma0,mur0,epsilonr0,prefactor0;
+void LatticeBoltzmann::Collision(double t){
+  int ix,iy,iz,r,p,i,j; double sigma0,mur0,epsilonr0,prefactor0, J0, J;
+  int ix_ant, iy_ant, iz_ant;
   int id0,id;
   double rhoc0; vector3D D0,B0,E0,H0,Jprima0,Eprima0;
-  for(ix=0;ix<Lx;ix++) //para cada celda
-    for(iy=0;iy<Ly;iy++)
+  double T=25.,omega=2*M_PI/T;
+  ix_ant=iy_ant=iz_ant=Lz/2;
+  for(ix=0;ix<Lx;ix++){ //para cada celda
+    for(iy=0;iy<Ly;iy++){
       for(iz=0;iz<Lz;iz++){
         //Compute the constants
         sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
         prefactor0=prefactor(epsilonr0,sigma0);
+        J0=0.0001*exp(-0.25*(pow(ix-ix_ant,2.)+pow(iy-iy_ant,2.)+pow(iz-iz_ant,2.)));
+        J=J0*sin(omega*t);
         //Compute the fields
         rhoc0=rhoc(ix,iy,iz,false); D0=D(ix,iy,iz,false); B0=B(ix,iy,iz,false);
         E0=E(D0,epsilonr0); H0=H(B0,mur0);
-        Jprima0=Jprima(E0,prefactor0); Eprima0=Eprima(E0,Jprima0,epsilonr0);
+        Jprima0.load(0,0,J); Eprima0=Eprima(E0,Jprima0,epsilonr0);
         //BGK evolution rule
         id0 = index0(ix,iy,iz);
         f0new[id0]=UmUTau*f0[id0]+UTau*feq0(rhoc0);
@@ -252,30 +257,32 @@ void LatticeBoltzmann::Collision(void){
                 fnew[id]=UmUTau*f[id]+UTau*feq(Jprima0,Eprima0,B0,epsilonr0,mur0,r,p,i,j);
               }
       }
+    }
+  }
 }
 void LatticeBoltzmann::ImposeFields(int t){
   int ix,iy,iz,r,p,i,j; double sigma0,mur0,epsilonr0,prefactor0,J0,J;
   int ix_ant, iy_ant, iz_ant;
   int id0,id;
   double rhoc0; vector3D D0,B0,E0,H0,Jprima0,Eprima0;
-  double lambda=16.,omega=2*M_PI/lambda;//25<T<50
+  double T=25.,omega=2*M_PI/T;//25<T<50
   ix_ant=iy_ant=iz_ant=Lz/2;
   for(iz=0;iz<Lz;iz++){ //for each cell
-    J0=0.5*(tanh(iz-iz_ant+lambda/4)-tanh(iz-iz_ant-lambda/4));
     for(iy=0;iy<Ly;iy++){
       for(ix=0;ix<Lx;ix++){
         //Compute the constants
+        J0=0.001*exp(-0.25*(pow(ix-ix_ant,2.)+pow(iy-iy_ant,2.)+pow(iz-iz_ant,2.)));
         sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
         prefactor0=prefactor(epsilonr0,sigma0);
-        J=epsilonr0/(2*prefactor0)*J0*sin(omega*t)*cos(omega*fabs(i-iz_ant))*exp(-0.5*(pow(ix-ix_ant,2.)+pow(iy-iy_ant,2.)));
+        J=J0*sin(omega*t);
         //Compute the fields
         //Primary fields (i.e. those from the sums)
         rhoc0=rhoc(ix,iy,iz,false);
-        D0.load(0,0,J);
-        B0.load(0,J/C,0);
+        //D0.load(0,0,0);
+        //B0.load(0,0,0);
         //Secundary fields (i.e. computed from the primary fields)
         E0=E(D0,epsilonr0); H0=H(B0,mur0);
-        Jprima0=Jprima(E0,prefactor0);
+        Jprima0.load(0,0,J);
         Eprima0=Eprima(E0,Jprima0,epsilonr0);
         //Impose fnew=feq with the desired fields
         for(r=0;r<2;r++)
@@ -311,7 +318,7 @@ void LatticeBoltzmann::Advection(void){
 }
 void LatticeBoltzmann::Print(string filename){
   int ix=0,iy=0,iz,r,p,i,j; double sigma0,mur0,epsilonr0,prefactor0;
-  double rhoc0; vector3D D0,B0,E0,H0,Jprima0,Eprima0; double E2,B2;
+  double rhoc0; vector3D D0,B0,E0,H0,Jprima0,Eprima0;
   std::ofstream file(filename);
   for(ix=0;ix<Lx;ix++){
     for(iy=0;iy<Ly;iy++){
@@ -321,31 +328,32 @@ void LatticeBoltzmann::Print(string filename){
         prefactor0=prefactor(epsilonr0,sigma0);
         //Compute the Fields
         rhoc0=rhoc(ix,iy,iz,true); D0=D(ix,iy,iz,true); B0=B(ix,iy,iz,true);
-        E0=E(D0,epsilonr0); H0=H(B0,mur0);
-        Jprima0=Jprima(E0,prefactor0); Eprima0=Eprima(E0,Jprima0,epsilonr0);
+        //E0=E(D0,epsilonr0); H0=H(B0,mur0);
+        //Jprima0=Jprima(E0,prefactor0); Eprima0=Eprima(E0,Jprima0,epsilonr0);
         //Print
-        file<<ix<<"\t"<<iy<<"\t"<<iz<<"\t"<<E0.x()/E00<<"\t"<<E0.y()/E00<<"\t"<<E0.z()/E00<<endl;
+        file<<ix<<"\t"<<iy<<"\t"<<iz<<"\t"<<D0.x()/E00<<"\t"<<D0.y()/E00<<"\t"<<D0.z()/E00<<endl;
       }
     }
   }
+  file.close();
 }
 
 
 int main(){
   LatticeBoltzmann Conductor;
-  int t, tmax=50;
+  int t, tmax=100;
   
   Conductor.Start();
   Conductor.ImposeFields(0);
   
   for(t=0;t<tmax;t++){
-    Conductor.Collision();
-    Conductor.ImposeFields(t);
+    //Conductor.ImposeFields(t);
+    Conductor.Collision(t);
     Conductor.Advection();
-    if(t%5==0) Conductor.Print("data/skin_"+std::to_string(t)+".dat");
+    if(t%5==0) Conductor.Print("data/antena_"+std::to_string(t)+".dat");
   }
   
-  Conductor.Print("data/skin_final.dat");
+  Conductor.Print("data/antena_final.dat");
   
   return 0;
 }
