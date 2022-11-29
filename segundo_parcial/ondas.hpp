@@ -114,7 +114,7 @@ void LatticeBoltzmann::Collision(){
   int ix,iy,i,n0; double rho0,Jx0,Jy0;
 
   for(iy=0;iy<Ly;iy++){
-    for(ix=0;ix<Lx-1;ix++){ //Se intera hasta la penultima celda en ix
+    for(ix=0;ix<Lx-1;ix++){ //Se itera hasta la penultima celda en ix
       rho0=rho(ix,iy,false);
       Jx0=Jx(ix,iy,false);
       Jy0=Jy(ix,iy,false);
@@ -123,10 +123,7 @@ void LatticeBoltzmann::Collision(){
         fnew[n0]=UmUtau*f[n0]+Utau*feq(rho0,Jx0,Jy0,i);
       }
     }
-    ix=Lx-1; //Se implementa condicion de reflexion para las celdas en Lx
-    rho0=rho(ix,iy,false);
-    Jx0=Jx(ix,iy,false);
-    Jy0=Jy(ix,iy,false);
+    ix=Lx-1; //Se implementa condicion de reflexion para las celdas en Lx-1
     n0=n(ix,iy,0); fnew[n0] = D*f[n0];
     n0=n(ix,iy,1); fnew[n0] = D*f[n(ix,iy,3)];
     n0=n(ix,iy,2); fnew[n0] = D*f[n(ix,iy,4)];

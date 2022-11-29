@@ -20,15 +20,26 @@ all:
 	@echo 'Compiling $@.cpp'
 	@g++ $(FLAGS) $< -o $@.x
 	@echo -e 'Running $@.x'
-	@./$@.x > data/$@.dat
-	@echo 'Data stored in data/$@.dat'
+	@./$@.x
+	@echo 'Program finished'
 
 %.x: %.cpp
 	@g++ $(FLAGS) $< -o $@
 
-graph: $(gp)
-	@gnuplot $(gp).gp
-	@okular data/$(gp).pdf &
+punto1: 1
+	@echo -e "Graficando ondas desde 1.gp"
+	@gnuplot 1.gp
+
+punto2: 2
+	@echo -e "Graficando envolventes desde 2.gp"
+	@gnuplot 2.gp
+
+punto3: 3
+	@echo -e "Valores pedidos mostrados en pantalla"
+
+punto4: 4
+	@echo -e "Graficando relacion entre D y C_abs desde 4.gp"
+	@gnuplot 4.gp
 
 clean:
 	@find . -type f -name "*.x" -delete
