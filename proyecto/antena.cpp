@@ -19,7 +19,7 @@ const double Epsilon0=1, Mu0=2;
 const double Sigma0=0;
 const double C=1.0/sqrt(2.0);
 
-const double E00=0.001,B00=E00/C;
+const double E00=0.001,B00=E00/C,J00=0.0001;
 
 //------------------Electromagnetic Constants for the Media------------------------------
 double mur(int ix,int iy,int iz){
@@ -41,34 +41,35 @@ class LatticeBoltzmann{
     double *f=nullptr,*fnew=nullptr;//f[ix][iy][iz][r][p][i][j]
     double *f0 = nullptr,*f0new = nullptr;//f0[ix][iy][iz] (r=0)
   public:
-    LatticeBoltzmann();
-    ~LatticeBoltzmann();
-    int index(int ix,int iy,int iz,int r,int p,int i,int j);
-    int index0(int ix,int iy,int iz);
-    //Auxiliary variables
-    double prefactor(double epsilonr0,double sigma0){return sigma0/(1+(sigma0*Mu0)/(4*epsilonr0));};
-    //Fields from direct sums
-    double rhoc(int ix,int iy,int iz,bool UseNew);
-    vector3D D(int ix,int iy,int iz,bool UseNew);
-    vector3D B(int ix,int iy,int iz,bool UseNew);
-    //Fields deduced from the first ones through electromagnetic constants
-    vector3D E(vector3D & D0,double Epsilonr);
-    vector3D H(vector3D & B0,double Mur);
-    //Forced (Actual) Macroscopic Fields (inline)
-    vector3D Jprima(vector3D & E0,double prefactor0){return E0*prefactor0;};
-    vector3D Eprima(vector3D & E0,vector3D & Jprima0,double epsilonr0){return E0-Jprima0*(Mu0/(4*epsilonr0));};
-    vector3D Dprima(vector3D & Eprima0,double epsilonr0){return Eprima0/epsilonr0;};
-    //Equilibrium Functions
-    double feq(vector3D & Jprima0,vector3D & Eprima0,vector3D & B0,
-               double Epsilonr,double Mur,
-               int r,int p,int i,int j);
-    double feq0(double rhoc0);
-    //Simulation Functions
-    void Start(void);
-    void Collision(double t);
-    void ImposeFields(int t);
-    void Advection(void);
-    void Print(std::string filename);
+  LatticeBoltzmann();
+  ~LatticeBoltzmann();
+  int index(int ix,int iy,int iz,int r,int p,int i,int j);
+  int index0(int ix,int iy,int iz);
+  //Auxiliary variables
+  double prefactor(double epsilonr0,double sigma0){return sigma0/(1+(sigma0*Mu0)/(4*epsilonr0));};
+  //Fields from direct sums
+  double rhoc(int ix,int iy,int iz,bool UseNew);
+  vector3D D(int ix,int iy,int iz,bool UseNew);
+  vector3D B(int ix,int iy,int iz,bool UseNew);
+  //Fields deduced from the first ones through electromagnetic constants
+  vector3D E(vector3D & D0,double Epsilonr);
+  vector3D H(vector3D & B0,double Mur);
+  //Forced (Actual) Macroscopic Fields (inline)
+  vector3D Jprima(vector3D & E0,double prefactor0){return E0*prefactor0;};
+  vector3D Eprima(vector3D & E0,vector3D & Jprima0,double epsilonr0){return E0-Jprima0*(Mu0/(4*epsilonr0));};
+  vector3D Dprima(vector3D & Eprima0,double epsilonr0){return Eprima0/epsilonr0;};
+  //Equilibrium Functions
+  double feq(vector3D & Jprima0,vector3D & Eprima0,vector3D & B0,
+             double Epsilonr,double Mur,
+             int r,int p,int i,int j);
+  double feq0(double rhoc0);
+  //Simulation Functions
+  void Start(void);
+  void Collision(double t);
+  void ImposeFields(int t);
+  void Advection(void);
+  void Print(std::string filename);
+  void Print_perfil(string filename);
 };
 
 LatticeBoltzmann::LatticeBoltzmann(){
@@ -240,7 +241,7 @@ void LatticeBoltzmann::Collision(double t){
         //Compute the constants
         sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
         prefactor0=prefactor(epsilonr0,sigma0);
-        J0=0.0001*exp(-0.25*(pow(ix-ix_ant,2.)+pow(iy-iy_ant,2.)+pow(iz-iz_ant,2.)));
+        J0=J00*exp(-0.25*(pow(ix-ix_ant,2.)+pow(iy-iy_ant,2.)+pow(iz-iz_ant,2.)));
         J=J0*sin(omega*t);
         //Compute the fields
         rhoc0=rhoc(ix,iy,iz,false); D0=D(ix,iy,iz,false); B0=B(ix,iy,iz,false);
@@ -271,7 +272,7 @@ void LatticeBoltzmann::ImposeFields(int t){
     for(iy=0;iy<Ly;iy++){
       for(ix=0;ix<Lx;ix++){
         //Compute the constants
-        J0=0.001*exp(-0.25*(pow(ix-ix_ant,2.)+pow(iy-iy_ant,2.)+pow(iz-iz_ant,2.)));
+        J0=J00*exp(-0.25*(pow(ix-ix_ant,2.)+pow(iy-iy_ant,2.)+pow(iz-iz_ant,2.)));
         sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
         prefactor0=prefactor(epsilonr0,sigma0);
         J=J0*sin(omega*t);
@@ -320,24 +321,41 @@ void LatticeBoltzmann::Print(string filename){
   int ix=0,iy=0,iz,r,p,i,j; double sigma0,mur0,epsilonr0,prefactor0;
   double rhoc0; vector3D D0,B0,E0,H0,Jprima0,Eprima0;
   std::ofstream file(filename);
+  iz=0;
   for(ix=0;ix<Lx;ix++){
     for(iy=0;iy<Ly;iy++){
-      for(iz=0;iz<Lz;iz++){
-        //Compute the electromagnetic constants
-        sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
-        prefactor0=prefactor(epsilonr0,sigma0);
-        //Compute the Fields
-        rhoc0=rhoc(ix,iy,iz,true); D0=D(ix,iy,iz,true); B0=B(ix,iy,iz,true);
-        //E0=E(D0,epsilonr0); H0=H(B0,mur0);
-        //Jprima0=Jprima(E0,prefactor0); Eprima0=Eprima(E0,Jprima0,epsilonr0);
-        //Print
-        file<<ix<<"\t"<<iy<<"\t"<<iz<<"\t"<<D0.x()/E00<<"\t"<<D0.y()/E00<<"\t"<<D0.z()/E00<<endl;
-      }
+      //Compute the electromagnetic constants
+      sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
+      prefactor0=prefactor(epsilonr0,sigma0);
+      //Compute the Fields
+      rhoc0=rhoc(ix,iy,iz,true); D0=D(ix,iy,iz,true); B0=B(ix,iy,iz,true);
+      //E0=E(D0,epsilonr0); H0=H(B0,mur0);
+      //Jprima0=Jprima(E0,prefactor0); Eprima0=Eprima(E0,Jprima0,epsilonr0);
+      //Print
+      file<<ix<<","<<iy<<","<<fabs(B0.y())/J00<<endl;
     }
+    file << endl;
   }
   file.close();
 }
 
+void LatticeBoltzmann::Print_perfil(string filename){
+  int ix=0,iy=0,iz=0,r,p,i,j; double sigma0,mur0,epsilonr0,prefactor0;
+  double rhoc0; vector3D D0,B0,E0,H0,Jprima0,Eprima0;
+  std::ofstream file(filename);
+  for(ix=0;ix<Lx;ix++){
+    //Compute the electromagnetic constants
+    sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
+    prefactor0=prefactor(epsilonr0,sigma0);
+    //Compute the Fields
+    rhoc0=rhoc(ix,iy,iz,true); D0=D(ix,iy,iz,true); B0=B(ix,iy,iz,true);
+    //E0=E(D0,epsilonr0); H0=H(B0,mur0);
+    //Jprima0=Jprima(E0,prefactor0); Eprima0=Eprima(E0,Jprima0,epsilonr0);
+    //Print
+    file<<ix<<","<<fabs(B0.y())/J00<<endl;
+  }
+  file.close();
+}
 
 int main(){
   LatticeBoltzmann Conductor;
@@ -351,8 +369,9 @@ int main(){
     Conductor.Collision(t);
     Conductor.Advection();
     if(t%5==0) Conductor.Print("data/antena_"+std::to_string(t)+".dat");
+    if(t%10==0)  Conductor.Print_perfil("data/perfil_"+std::to_string(t)+".csv");
   }
-  
+
   Conductor.Print("data/antena_final.dat");
   
   return 0;
