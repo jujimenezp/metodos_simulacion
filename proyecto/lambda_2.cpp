@@ -21,8 +21,9 @@ const double C=1.0/sqrt(2.0);
 
 const double E00=0.001,B00=E00/C,J00=0.0001;
 
-const double T=25.,omega=2*M_PI/T;
+const double lambda=16., T=lambda/C, omega=2*M_PI/T;
 const int ix_ant=Lx/2, iy_ant=Ly/2, iz_ant=Lz/2;
+const double alpha = 0.5;
 
 
 //------------------Electromagnetic Constants for the Media------------------------------
@@ -241,8 +242,8 @@ void LatticeBoltzmann::Collision(double t){
         //Compute the constants
         sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
         prefactor0=prefactor(epsilonr0,sigma0);
-        J0=J00*exp(-0.25*(pow(ix-ix_ant,2.)+pow(iy-iy_ant,2.)+pow(iz-iz_ant,2.)));
-        J=J0*sin(omega*t);
+        J0=J00/2*(tanh(100*(iz-iz_ant+lambda/4))-tanh(100*(iz-iz_ant-lambda/4)));
+        J=J0*cos(2*M_PI/lambda*fabs(iz-iz_ant))*sin(omega*t)*exp(-alpha*(pow(ix-ix_ant,2.)+pow(iy-iy_ant,2.)));
         //Compute the fields
         rhoc0=rhoc(ix,iy,iz,false); D0=D(ix,iy,iz,false); B0=B(ix,iy,iz,false);
         E0=E(D0,epsilonr0); H0=H(B0,mur0);
@@ -349,7 +350,7 @@ int main(){
     //Conductor.ImposeFields(t);
     Conductor.Collision(t);
     Conductor.Advection();
-    if(t%5==0) Conductor.Print("data/antena_"+std::to_string(t)+".dat", "data/perfil_"+std::to_string(t)+".dat");
+    if(t%5==0) Conductor.Print("data/lambda_"+std::to_string(t)+".dat", "data/lambda_perfil_"+std::to_string(t)+".dat");
   }
   
   return 0;
