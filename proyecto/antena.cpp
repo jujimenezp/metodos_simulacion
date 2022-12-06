@@ -68,8 +68,7 @@ class LatticeBoltzmann{
   void Collision(double t);
   void ImposeFields(int t);
   void Advection(void);
-  void Print(std::string filename);
-  void Print_perfil(string filename);
+  void Print(std::string filename, std::string filename_perfil);
 };
 
 LatticeBoltzmann::LatticeBoltzmann(){
@@ -317,44 +316,26 @@ void LatticeBoltzmann::Advection(void){
               }
       }
 }
-void LatticeBoltzmann::Print(string filename){
-  int ix=0,iy=0,iz,r,p,i,j; double sigma0,mur0,epsilonr0,prefactor0;
-  double rhoc0; vector3D D0,B0,E0,H0,Jprima0,Eprima0;
-  std::ofstream file(filename);
-  iz=0;
-  for(ix=0;ix<Lx;ix++){
-    for(iy=0;iy<Ly;iy++){
+void LatticeBoltzmann::Print(string filename, string filename_perfil){
+  int ix,iy=Ly/2,iz,r,p,i,j; double sigma0,mur0,epsilonr0,prefactor0;
+  double rhoc0; vector3D D0,B0,E0,H0,Jprima0,Eprima0; double E2,B2;
+  ofstream file(filename);
+  ofstream file2(filename_perfil);
+  for(ix=0;ix < Lx; ix++)
+    for(iz=0;iz<Lz;iz++){
       //Compute the electromagnetic constants
       sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
       prefactor0=prefactor(epsilonr0,sigma0);
       //Compute the Fields
       rhoc0=rhoc(ix,iy,iz,true); D0=D(ix,iy,iz,true); B0=B(ix,iy,iz,true);
-      //E0=E(D0,epsilonr0); H0=H(B0,mur0);
-      //Jprima0=Jprima(E0,prefactor0); Eprima0=Eprima(E0,Jprima0,epsilonr0);
       //Print
-      file<<ix<<","<<iy<<","<<fabs(B0.y())/J00<<endl;
+      B2 = B0.y()/J00;
+      file<<ix<<" "<<iz<<" "<<B2<<endl;
+      if(iz==Lz/2)
+        file2 << ix << " " << B2 << endl;
     }
-    file << endl;
-  }
   file.close();
-}
-
-void LatticeBoltzmann::Print_perfil(string filename){
-  int ix=0,iy=0,iz=0,r,p,i,j; double sigma0,mur0,epsilonr0,prefactor0;
-  double rhoc0; vector3D D0,B0,E0,H0,Jprima0,Eprima0;
-  std::ofstream file(filename);
-  for(ix=0;ix<Lx;ix++){
-    //Compute the electromagnetic constants
-    sigma0=sigma(ix,iy,iz); mur0=mur(ix,iy,iz); epsilonr0=epsilonr(ix,iy,iz);
-    prefactor0=prefactor(epsilonr0,sigma0);
-    //Compute the Fields
-    rhoc0=rhoc(ix,iy,iz,true); D0=D(ix,iy,iz,true); B0=B(ix,iy,iz,true);
-    //E0=E(D0,epsilonr0); H0=H(B0,mur0);
-    //Jprima0=Jprima(E0,prefactor0); Eprima0=Eprima(E0,Jprima0,epsilonr0);
-    //Print
-    file<<ix<<","<<fabs(B0.y())/J00<<endl;
-  }
-  file.close();
+  file2.close();
 }
 
 int main(){
@@ -368,11 +349,8 @@ int main(){
     //Conductor.ImposeFields(t);
     Conductor.Collision(t);
     Conductor.Advection();
-    if(t%5==0) Conductor.Print("data/antena_"+std::to_string(t)+".dat");
-    if(t%10==0)  Conductor.Print_perfil("data/perfil_"+std::to_string(t)+".csv");
+    if(t%5==0) Conductor.Print("data/antena_"+std::to_string(t)+".dat", "data/perfil_"+std::to_string(t)+".dat");
   }
-
-  Conductor.Print("data/antena_final.dat");
   
   return 0;
 }
