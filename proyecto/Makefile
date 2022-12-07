@@ -35,3 +35,4 @@ clean:
 	@find . -type f -name "*.dat" -delete
 	@find . -type f -name "*.log" -delete
 	@find . -type f -name "*.csv" -delete
+	@find . -type f -name "*.txt" -delete
