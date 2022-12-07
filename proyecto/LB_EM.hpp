@@ -8,9 +8,9 @@
 #ifndef LB_EM_H_
 #define LB_EM_H_
 //------------------------CONSTANTS-------------------------------
-const int Lx = 200;   //
-const int Ly = 200;   //
-const int Lz = 200; //
+const int Lx = 100;   //
+const int Ly = 100;   //
+const int Lz = 100; //
 const int Qr = 2, Qp = 3, Qi = 4, Qj = 2;
 //-------------------
 const double Tau = 0.5;
@@ -24,10 +24,10 @@ const double C=1.0/sqrt(2.0);
 const double E00=0.001,B00=E00/C,J00=0.001;
 const double Z0=sqrt(Mu0/Epsilon0);
 
-const double lambda=20., T=lambda/C, omega=2*M_PI/T;
+const double lambda=16., T=lambda/C, omega=2*M_PI/T;
 const int ix_ant=Lx/2, iy_ant=Ly/2, iz_ant=Lz/2;
 const double alpha = 0.5;
-const double r=40;
+const double r=32;
 
 //------------------Electromagnetic Constants for the Media------------------------------
 double mur(int ix,int iy,int iz){
@@ -80,8 +80,9 @@ class LatticeBoltzmann{
   void Advection(void);
   void Print(std::string filename, std::string filename_perfil);
   double inter_bilineal(double x, double y, vector3D Sxy, vector3D Sxy1, vector3D Sx1y,vector3D Sx1y1);
-  void Patron_Radio(int N, std::vector<double> &S, double t);
-  void Print_Patron(int N,std::vector<double> S_max,std::string filename);
+  void Patron_PlanoH(int N, std::vector<double> &S, double t);
+  void Patron_PlanoE(int N, std::vector<double> &S, double t);
+  void Print_Patron(int N,std::vector<double> S_maxH,std::vector<double> S_maxE,std::string filenameH, std::string filenameE);
 };
 
 
@@ -377,7 +378,7 @@ double LatticeBoltzmann::inter_bilineal(double x, double y, vector3D Sxy, vector
   return S_max;
 }
 
-void LatticeBoltzmann::Patron_Radio(int N, std::vector<double> &S, double t){
+void LatticeBoltzmann::Patron_PlanoH(int N, std::vector<double> &S, double t){
   double x,y,z=Lz/2,theta=0,S_max;
   int ix,iy,iz;
   double dtheta=2*M_PI/N;
@@ -393,15 +394,34 @@ void LatticeBoltzmann::Patron_Radio(int N, std::vector<double> &S, double t){
   }
 }
 
-void LatticeBoltzmann::Print_Patron(int N, std::vector<double> S_max, std::string filename){
+void LatticeBoltzmann::Patron_PlanoE(int N, std::vector<double> &S, double t){
+  double x,y=Ly/2,z,theta=0,S_max;
+  int ix,iy,iz;
+  double dtheta=2*M_PI/N;
+  vector3D Sxz,Sxz1,Sx1z,Sx1z1;
+  for(int i=0;i < N;i++,theta+=dtheta){
+    x=ix_ant+r*cos(theta); z=iz_ant+r*sin(theta);
+    ix=floor(x); iy=floor(y); iz=floor(z);
+    Sxz=Poynting(ix,iy,iz,t);
+    Sxz1=Poynting(ix,iy,iz+1,t);
+    Sx1z=Poynting(ix+1,iy,iz,t);
+    Sx1z1=Poynting(ix+1,iy,iz+1,t);
+    S[i]=inter_bilineal(x,y,Sxz,Sxz1,Sx1z,Sx1z1);
+  }
+}
+
+void LatticeBoltzmann::Print_Patron(int N, std::vector<double> S_maxH, std::vector<double> S_maxE,std::string filenameH, std::string filenameE){
   double x,y,theta=0;
   double dtheta=2*M_PI/N;
-  std::ofstream file(filename);
+  std::ofstream file(filenameH);
+  std::ofstream file2(filenameE);
   for(int i=0;i < N;i++,theta+=dtheta){
     x=ix_ant+r*cos(theta); y=iy_ant +r*sin(theta);
-    file <<theta <<"\t"<< S_max[i]/(Z0*J00*J00)<<std::endl;
+    file <<theta <<"\t"<< log(S_maxH[i]/(Z0*J00*J00))<<std::endl;
+    file2 <<theta <<"\t"<< log(S_maxE[i]/(Z0*J00*J00))<<std::endl;
   }
   file.close();
+  file2.close();
 }
 
 #endif // LB_EM_H_
