@@ -21,12 +21,13 @@ const double Epsilon0=1, Mu0=2;
 const double Sigma0=0;
 const double C=1.0/sqrt(2.0);
 
-const double E00=0.001,B00=E00/C,J00=0.001;
+const double E00=0.001,B00=E00/C,J00=0.0001;
 const double Z0=sqrt(Mu0/Epsilon0);
 
-const double lambda=16., T=lambda/C, omega=2*M_PI/T;
 const int ix_ant=Lx/2, iy_ant=Ly/2, iz_ant=Lz/2;
 const double alpha = 0.5;
+//Constantes lambda/2
+const double lambda=16., T=lambda/C, omega=2*M_PI/T;
 const double r=32;
 
 //------------------Electromagnetic Constants for the Media------------------------------
@@ -83,6 +84,8 @@ class LatticeBoltzmann{
   void Patron_PlanoH(int N, std::vector<double> &S, double t);
   void Patron_PlanoE(int N, std::vector<double> &S, double t);
   void Print_Patron(int N,std::vector<double> S_maxH,std::vector<double> S_maxE,std::string filenameH, std::string filenameE);
+  friend class Dipole;
+  friend class Lambda2;
 };
 
 
@@ -145,7 +148,7 @@ int LatticeBoltzmann::index0(int ix,int iy,int iz){
 
 //-----------------MACROSCOPIC FIELDS------------------
 double LatticeBoltzmann::Jz(int ix, int iy, int iz, double t){
-double J, J0;
+  double J, J0;
   J0=J00/2*(tanh(100*(iz-iz_ant+lambda/4))-tanh(100*(iz-iz_ant-lambda/4)));
   J=J0*cos(2*M_PI/lambda*fabs(iz-iz_ant))*sin(omega*t)*exp(-alpha*(pow(ix-ix_ant,2.)+pow(iy-iy_ant,2.)));
   return J;
@@ -417,8 +420,8 @@ void LatticeBoltzmann::Print_Patron(int N, std::vector<double> S_maxH, std::vect
   std::ofstream file2(filenameE);
   for(int i=0;i < N;i++,theta+=dtheta){
     x=ix_ant+r*cos(theta); y=iy_ant +r*sin(theta);
-    file <<theta <<"\t"<< log(S_maxH[i]/(Z0*J00*J00))<<std::endl;
-    file2 <<theta <<"\t"<< log(S_maxE[i]/(Z0*J00*J00))<<std::endl;
+    file <<theta <<"\t"<< log10(S_maxH[i]/(Z0*J00*J00))<<std::endl;
+    file2 <<theta <<"\t"<< log10(S_maxE[i]/(Z0*J00*J00))<<std::endl;
   }
   file.close();
   file2.close();
