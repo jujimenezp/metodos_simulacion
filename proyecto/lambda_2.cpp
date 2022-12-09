@@ -16,7 +16,7 @@ void max(std::vector<double> &V1, std::vector<double> &V2);
 int main(){
   Lambda2 Conductor;
   int t, tmax=4*T+10;
-  int N=150;
+  int N=200;
   std::vector<double> S_maxH(N,0), S_maxH_aux(N,0), S_maxE(N,0), S_maxE_aux(N,0);
   double G;
   
@@ -28,7 +28,7 @@ int main(){
     if(t%5==0) Conductor.Print_S(t,"data/lambda_"+std::to_string(t)+".csv");
     std::clog << "t: " << t <<" \r";
   }
-  for(t=r/C;t<r/C+T;t++){
+  for(t=r/C;t<=r/C+T;t++){
     Conductor.Collision_lambda2(t);
     Conductor.Advection();
     Conductor.Patron_PlanoH_lambda2(N,S_maxH,t);

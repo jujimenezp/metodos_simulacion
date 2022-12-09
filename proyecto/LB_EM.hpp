@@ -45,13 +45,13 @@ double parasito(int ix, int iy, int iz,
 }
 
 double sigma(int ix,int iy,int iz){
-  double director1,director2,director3,reflector1,magnitud=200;
+  double director1,director2,director3,reflector1,magnitud=16;
   director1=parasito(ix,iy,iz,0.125*lambda,0,0.55*lambda,0.5);
   director2=parasito(ix,iy,iz,(0.125+0.2)*lambda,0,0.4*lambda,0.5);
   director3=parasito(ix,iy,iz,(0.125+0.4)*lambda,0,0.35*lambda,0.5);
 
   reflector1=parasito(ix,iy,iz,-0.35*lambda,0,0.56*lambda,0.5);
-  return magnitud*(director1+director2+reflector1);
+  return magnitud*(director1+director2+director3+reflector1);
 }
 
 //--------------------- class LatticeBoltzmann ------------
