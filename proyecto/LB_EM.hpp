@@ -8,9 +8,9 @@
 #ifndef LB_EM_H_
 #define LB_EM_H_
 //------------------------CONSTANTS-------------------------------
-const int Lx = 100;   //
-const int Ly = 100;   //
-const int Lz = 100; //
+const int Lx = 200;   //
+const int Ly = 200;   //
+const int Lz = 200; //
 const int Qr = 2, Qp = 3, Qi = 4, Qj = 2;
 //-------------------
 const double Tau = 0.5;
@@ -27,8 +27,8 @@ const double Z0=sqrt(Mu0/Epsilon0);
 const int ix_ant=Lx/2, iy_ant=Ly/2, iz_ant=Lz/2;
 const double alpha = 0.5;
 //Constantes lambda/2
-const double lambda=16., T=lambda/C, omega=2*M_PI/T;
-const double r=32;
+const double lambda=20., T=lambda/C, omega=2*M_PI/T;
+const double r=3*lambda;
 
 //------------------Electromagnetic Constants for the Media------------------------------
 double mur(int ix,int iy,int iz){
@@ -37,8 +37,21 @@ double mur(int ix,int iy,int iz){
 double epsilonr(int ix,int iy,int iz){
   return 1.0;
 }
+double parasito(int ix, int iy, int iz,
+                int ix_par, int iy_par, double l, double alpha_par){
+  double sigma;
+  sigma=exp(-alpha_par*(pow(ix-(ix_ant+ix_par),2.)+pow(iy-(iy_ant+iy_par),2.)))*0.5*(tanh(100*(iz-(iz_ant-l/2)))-tanh(100*(iz-(iz_ant+l/2))));
+  return sigma;
+}
+
 double sigma(int ix,int iy,int iz){
-  return 0.;
+  double director1,director2,director3,reflector1,magnitud=200;
+  director1=parasito(ix,iy,iz,0.125*lambda,0,0.55*lambda,0.5);
+  director2=parasito(ix,iy,iz,(0.125+0.2)*lambda,0,0.4*lambda,0.5);
+  director3=parasito(ix,iy,iz,(0.125+0.4)*lambda,0,0.35*lambda,0.5);
+
+  reflector1=parasito(ix,iy,iz,-0.35*lambda,0,0.56*lambda,0.5);
+  return magnitud*(director1+director2+reflector1);
 }
 
 //--------------------- class LatticeBoltzmann ------------
@@ -86,6 +99,7 @@ class LatticeBoltzmann{
   void Print_Patron(int N,std::vector<double> S_maxH,std::vector<double> S_maxE,std::string filenameH, std::string filenameE);
   friend class Dipole;
   friend class Lambda2;
+  friend class Yagi_Uda;
 };
 
 
